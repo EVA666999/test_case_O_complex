@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Поиск города{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Search weather by city</h2>
+                
+                {% if weather.city %}
+                <div class="alert alert-success mt-3">
+                    <b>{{ weather.city }}</b>: {{ weather.temperature }}°C
+                </div>
+                {% elif error %}
+                <div class="alert alert-danger mt-3">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="get" action="" class="mb-3 position-relative">
+                    <div class="input-group">
+                        <input type="text" name="city" id="cityInput" class="form-control" placeholder="Enter city name" required autocomplete="off">
+                        <button type="submit" class="btn btn-primary">Find</button>
+                    </div>
+                    <div id="suggestions" class="list-group" style="position: absolute; left: 0; right: 0; top: 100%; z-index: 1000;"></div>
+                </form>
+
+                <div class="mt-4">
+                    <h5>Search History</h5>
+                    <div id="searchHistory" class="list-group list-group-flush">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const input = document.getElementById('cityInput');
+const suggestions = document.getElementById('suggestions');
+let timeoutId;
+
+// Автодополнение
+input.addEventListener('input', function() {
+    clearTimeout(timeoutId);
+    const query = this.value.trim();
+    suggestions.innerHTML = '';
+    if (query.length < 2) return;
+
+    timeoutId = setTimeout(() => {
+        fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestions.innerHTML = '';
+                if (data.results && data.results.length > 0) {
+                    data.results.slice(0, 5).forEach(city => {
+                        const div = document.createElement('div');
+                        div.className = 'list-group-item list-group-item-action';
+                        div.textContent = `${city.name}, ${city.country}`;
+                        div.addEventListener('click', () => {
+                            input.value = city.name;
+                            suggestions.innerHTML = '';
+                        });
+                        suggestions.appendChild(div);
+                    });
+                } else {
+                    suggestions.innerHTML = '<div class="list-group-item">Nothing found</div>';
+                }
+            });
+    }, 300);
+});
+
+// Закрываем подсказки при клике вне поля ввода
+document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+        suggestions.innerHTML = '';
+    }
+});
+
+// Сохраняем последний город после успешного поиска
+{% if weather.city %}
+localStorage.setItem('last_city', "{{ weather.city|escapejs }}");
+{% endif %}
+
+// Предложение посмотреть погоду в последнем городе
+const lastCity = localStorage.getItem('last_city');
+if (lastCity && lastCity !== "{{ weather.city|escapejs }}") {
+    const offer = document.createElement('div');
+    offer.className = 'alert alert-info mt-3 d-flex align-items-center justify-content-between';
+    offer.innerHTML = `
+        <div>
+            <i class="bi bi-clock-history"></i> 
+            Your last request <b>${lastCity}</b>?
+        </div>
+        <a href="?city=${encodeURIComponent(lastCity)}" class="btn btn-primary btn-sm">Show</a>
+    `;
+    const form = document.querySelector('form');
+    form.parentNode.insertBefore(offer, form.nextSibling);
+}
+
+async function loadSearchHistory() {
+    const historyDiv = document.getElementById('searchHistory');
+    historyDiv.innerHTML = 'Loading...';
+    try {
+        const response = await fetch('/api/search-history/');
+        const data = await response.json();
+        const results = data.results || [];
+        if (results.length > 0) {
+            historyDiv.innerHTML = results.map(item => `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    ${item.city}
+                    <span class="badge bg-primary rounded-pill">${item.search_count}</span>
+                </div>
+            `).join('');
+        } else {
+            historyDiv.innerHTML = '<div class="list-group-item">No data</div>';
+        }
+    } catch (e) {
+        historyDiv.innerHTML = 'Error loading data';
+    }
+}
+document.addEventListener('DOMContentLoaded', loadSearchHistory);
+</script>
+{% endblock %}
