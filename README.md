@@ -1,107 +1,84 @@
-# Weather Search API
+# Weather Application
 
-A web application for weather search with search history tracking and statistics API.
+Веб-приложение для отображения погоды с использованием Django и OpenWeatherMap API.
 
-## Features
+## Реализованные функции
 
-- Weather search by city name
-- City name autocomplete
-- Search history tracking
-- Search statistics API
-- Swagger API documentation
+- Поиск погоды по названию города
+- Автодополнение городов при вводе
+- Отображение текущей погоды с детальной информацией
+- Сохранение истории поиска
+- Статистика поиска (топ городов и последние поиски)
+- REST API для работы с погодой и историей поиска
+- Swagger документация API
+- Удобаный Frontend
 
-## Installation
+## Технологии
 
-1. Clone the repository:
+- **Backend:**
+  - Python 3.10
+  - Django 4.2
+  - Django REST Framework
+  - PostgreSQL
+  - psycopg2
+  - drf-yasg (Swagger)
+
+- **Frontend:**
+  - HTML/CSS
+  - JavaScript
+  - Bootstrap
+  - jQuery
+
+## Установка и запуск
+
+1. Клонируйте репозиторий:
 ```bash
-git clone <repository-url>
-cd weather-app
+git clone https://github.com/EVA666999/test_case_-_komplex.git
+cd test_case_-_komplex
 ```
 
-2. Create a virtual environment and install dependencies:
+2. Создайте и активируйте виртуальное окружение:
 ```bash
 python -m venv venv
-source venv/bin/activate  # for Linux/Mac
-venv\Scripts\activate     # for Windows
+source venv/bin/activate  # для Linux/Mac
+venv\Scripts\activate     # для Windows
+```
+
+3. Установите зависимости:
+```bash
 pip install -r requirements.txt
 ```
 
-3. Apply migrations:
+4. Создайте файл .env в корне проекта:
+```env
+POSTGRES_DB=weather_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+5. Создайте базу данных PostgreSQL:
+```bash
+psql -U postgres
+CREATE DATABASE weather_db;
+```
+
+6. Примените миграции:
 ```bash
 python manage.py migrate
 ```
 
-4. Run the server:
+7. Запустите сервер разработки:
 ```bash
 python manage.py runserver
 ```
 
+Приложение будет доступно по адресу: http://localhost:8000
+
 ## API Endpoints
 
-### Weather
-- `GET /api/weather/search_page/` - Weather search page
-- `GET /api/weather/get_weather/?city={city_name}` - Get weather for a specific city
+- `/api/weather/` - получение погоды по городу
+- `/api/search-history/` - история поиска
+- `/api/docs/` - Swagger документация API
 
-### Search History
-- `GET /api/search-history/city_stats/?city={city_name}` - Get statistics for a specific city
-- `GET /api/search-history/all_stats/` - Get statistics for all cities
-- `GET /api/search-history/top_cities/` - Get top 5 most searched cities
-- `GET /api/search-history/recent_searches/` - Get last 5 searches
-
-### Swagger Documentation
-- `GET /swagger/` - Swagger UI
-- `GET /redoc/` - ReDoc UI
-
-## API Response Examples
-
-### Weather Data
-```json
-{
-    "city": "London",
-    "temperature": 15.5,
-    "coordinates": {
-        "latitude": 51.5074,
-        "longitude": -0.1278
-    }
-}
-```
-
-### City Statistics
-```json
-{
-    "city": "London",
-    "search_count": 5,
-    "last_search": "2024-03-14T12:00:00Z",
-    "rank": 2,
-    "total_searches": 100
-}
-```
-
-### Top Cities
-```json
-[
-    {
-        "city": "London",
-        "search_count": 5,
-        "last_search": "2024-03-14T12:00:00Z"
-    },
-    {
-        "city": "Paris",
-        "search_count": 3,
-        "last_search": "2024-03-14T11:00:00Z"
-    }
-]
-```
-
-## Technologies
-
-- Python 3.8+
-- Django 4.2+
-- Django REST Framework
-- Open-Meteo API
-- Bootstrap 5
-- Swagger/OpenAPI
-
-## License
-
-MIT 
